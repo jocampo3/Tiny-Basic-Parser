@@ -1,0 +1,13 @@
+#%cd drive/MyDrive/tb
+import lexicalanalysis
+from lexicalanalysis import build_the_lexer
+lexer = build_the_lexer()
+# sampletb = open("hexdump.tb", "r")
+# #lexer.input("A=3\nB=4\nPRINT A+B")
+# lexer.input(sampletb.read())
+# # Tokenize
+# while True:
+#     tok = lexer.token()
+#     if not tok:
+#         break      # No more input
+#     print(tok)
