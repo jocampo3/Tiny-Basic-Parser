@@ -1,5 +1,7 @@
 # PART 2 solution - recursive descent top-down parser by hand
 from lexicalanalysis import build_the_lexer
+from statements import *
+
 lexer = build_the_lexer()
 
 # define all the non terminal parsing functions
@@ -9,17 +11,20 @@ def tokerror(tok, exp):
   exit(1)
 
 def program(tok):
+  print(len(statements))
   actual_statement(tok)
   tok = lexer.token()
   while tok is not None:
     actual_statement(tok)
     tok = lexer.token()
+  print(len(statements))
   print("VALID")
 
 def actual_statement(tok):
   if tok.type != "NUMBER":
     tokerror(tok, "NUMBER")
-  tok = statement(lexer.token())
+  linenum = tok.value
+  tok = statement(lexer.token(), linenum)
   if tok is None:
     print("EOF wihthout a newline character at the end")
     print("INVALID")
@@ -27,9 +32,11 @@ def actual_statement(tok):
   elif tok.type != "NEWLINE":
     tokerror(tok, "NEWLINE")
 
-def statement(tok):
+#note for all of these diffrerent types of statements we are creating a global statement variable that can be referenced whenever we need it.
+def statement(tok, linenum):
   # look for a statement
   if tok.type == "PRINT":
+    stmt = PrintStatement(linenum)
     tok = myprint(tok)
   elif tok.type == "INPUT":
     tok = myinput(tok)
@@ -43,8 +50,7 @@ def statement(tok):
     gosub(tok)
     tok = lexer.token()
   elif tok.type == "IF":
-    myif(tok)
-    tok = lexer.token()
+    tok = myif(tok)
   elif tok.type == "END":
     tok = lexer.token()
   elif tok.type == "RETURN":
@@ -56,6 +62,7 @@ def statement(tok):
     tok = lexer.token()
   else:
     tokerror(tok, "PRINT, INPUT, RETURN, END, ...")
+  statements.append(stmt)
   return tok
 
 def function(tok):
@@ -154,36 +161,39 @@ def factor(tok):
     if tok.type != "RPAREN":
       tokerror(tok, "RPAREN")
 
-def main():
-  # now, open a program and parse it
-  the_source_code1 = open("printsonly.tb", "r") #file 1
-  the_source_code2 = open("hexdump.tb", "r") #file 2
-  the_source_code3 = open("random.tb", "r") #file 3
-  the_source_code4 = open("ifsonly.tb", "r")
+# def main():
+print("Program Start.")
 
-  # print("Reading printsonly file...")
-  # lexer.input(the_source_code1.read())
-  # program(lexer.token())
-  # print("Printsonly file read!")
+# now, open a program and parse it
+the_source_code1 = open("printsonly.tb", "r") #file 1
+# the_source_code2 = open("hexdump.tb", "r") #file 2
+# the_source_code3 = open("random.tb", "r") #file 3
+# the_source_code4 = open("ifsonly.tb", "r")
 
-  # print("Reading hexdump file...")
-  # lexer.input(the_source_code2.read())
-  # program(lexer.token())
-  # print("Hexdump file read!")
+print("Reading printsonly file...")
+lexer.input(the_source_code1.read())
+statements = []
+program(lexer.token())
+print("Printsonly file read!")
 
-  # print("Reading random file")
-  # lexer.input(the_source_code3.read())
-  # program(lexer.token())
-  # print("Random file read")
+# print("Reading hexdump file...")
+# lexer.input(the_source_code2.read())
+# program(lexer.token())
+# print("Hexdump file read!")
 
-  print("Reading ifsonly file")
-  lexer.input(the_source_code4.read())
-  program(lexer.token())
-  print("ifsonly file read")
+# print("Reading random file")
+# lexer.input(the_source_code3.read())
+# program(lexer.token())
+# print("Random file read")
 
-  print("Program End")
+# print("Reading ifsonly file...")
+# lexer.input(the_source_code4.read())
+# program(lexer.token())
+# print("ifsonly file read!")
+
+print("Program End")
 
   #TODO: the rest of the blank functions
 
-if __name__ == "__main__":
-  main()
+# if __name__ == "__main__":
+#   main()
