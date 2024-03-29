@@ -11,7 +11,6 @@ def tokerror(tok, exp):
   exit(1)
 
 def program(tok):
-  print(len(statements))
   actual_statement(tok)
   tok = lexer.token()
   while tok is not None:
@@ -32,88 +31,86 @@ def actual_statement(tok):
   elif tok.type != "NEWLINE":
     tokerror(tok, "NEWLINE")
 
-#note for all of these diffrerent types of statements we are creating a global statement variable that can be referenced whenever we need it.
+# note for all of these different types of statements
+# we are creating a global stmt variable that can be referenced whenever we need it 
 def statement(tok, linenum):
   # look for a statement
   if tok.type == "PRINT":
-    stmt = PrintStatement(linenum)
+    statements.append(PrintStatement(linenum))
     tok = myprint(tok)
   elif tok.type == "INPUT":
+    statements.append(InputStatement(linenum))
     tok = myinput(tok)
   elif tok.type == "LET":
-    let(tok)
-    tok = lexer.token()
+    statements.append(LetStatement(linenum))
+    tok = let(tok)
   elif tok.type == "GOTO":
-    goto(tok)
-    tok = lexer.token()
+    tok = goto(tok)
   elif tok.type == "GOSUB":
-    gosub(tok)
-    tok = lexer.token()
+    tok = gosub(tok)
   elif tok.type == "IF":
-    tok = myif(tok)
+    statements.append(IfStatement(linenum))
+    tok = myif(tok, linenum)
   elif tok.type == "END":
     tok = lexer.token()
   elif tok.type == "RETURN":
     tok = lexer.token()
-  elif tok.type == "RND" or tok.type == "USR":
-    function(tok)
-    tok = lexer.token()
   elif tok.type == "REM":
+    statements.append(RemStatement(linenum))
     tok = lexer.token()
   else:
     tokerror(tok, "PRINT, INPUT, RETURN, END, ...")
-  statements.append(stmt)
   return tok
 
 def function(tok):
   tok = lexer.token()
-  # insert your code here
+  if tok.type != "LPAREN":
+    tokerror(tok, "(")
+  tok = expr_list(lexer.token())
+  if tok.type != "RPAREN":
+    tokerror(tok, ")")
 
-def myif(tok):
+def myif(tok, linenum):
   tok = lexer.token()
   tok = expression(tok)
   tok = relop(tok)
   tok = expression(tok)
   if tok.type != "THEN":
-    tokerror(tok, "THEN")
+    tokerror(tok,"THEN")
   tok = lexer.token()
-  tok = statement(tok)
+  tok = statement(tok, linenum)
   return tok
-  # insert your code here
 
 def relop(tok):
   if tok.type == "LESS":
     tok = lexer.token()
     if tok.type == "GREATER" or tok.type == "EQUALS":
-      tok = lexer.token() #grab extra token since the token we checked was part of relop
+      tok = lexer.token() # grab the nextra token since the token we just "consumed" (i.e., checked) was part of the relop
   elif tok.type == "GREATER":
-    if tok.type == "LESS" or tok.type == "EQUALS":
-      tok = lexer.token()
-  elif tok.type  == "EQUALS":
     tok = lexer.token()
-  else: 
+    if tok.type == "LESS" or tok.type == "EQUALS":
+      tok = lexer.token() # grab the nextra token since the token we just "consumed" (i.e., checked) was part of the relop
+  elif tok.type == "EQUALS":
+    tok = lexer.token() # nothing to check for here so we need to grab an extra token in order to return an "extra" token
+  else:
     tokerror(tok, "LESS, GREATER, EQUALS")
   return tok
 
 def gosub(tok):
-  tok = lexer.token()
+  tok = expression(lexer.token())
   return tok
-  # insert your code here
 
 def goto(tok):
-  tok = lexer.token()
+  tok = expression(lexer.token())
   return tok
-  # insert your code here
 
 def let(tok):
   tok = lexer.token()
-  return tok
   # insert your code here
 
 def myinput(tok):
-  tok = lexer.token()
+  tok = var_list(lexer.token())
   return tok
-  # insert your code here
 
 def myprint(tok):
   # no need to check for print token itself again, as that's the only way this function ends up being called
@@ -128,6 +125,17 @@ def expr_list(tok):
     tok = lexer.token()
   while tok is not None and (tok.type == "COMMA" or tok.type == "SEMICOLON"):
     tok = expression(lexer.token())
+  return tok
+
+def var_list(tok):
+  # look for a var first and ERROR out if we don't have a var
+  if tok.type != "VAR":
+    tokerror(tok, 'VAR')
+  tok = lexer.token()
+  while tok is not None and tok.type == "COMMA":
+    tok = lexer.token()
+    if tok.type != "VAR":
+      tokerror(tok, 'VAR')
   return tok
 
 # note that expression MUST make an extra call to lex before it finishes
@@ -153,8 +161,10 @@ def term(tok):
   return tok
 
 def factor(tok):
-  if tok.type != "VAR" and tok.type != "NUMBER" and tok.type != "LPAREN":
-    tokerror(tok, "VAR, NUMBER, LPAREN")
+  if tok.type != "RND" and tok.type != "USR" and tok.type != "VAR" and tok.type != "NUMBER" and tok.type != "LPAREN":
+    tokerror(tok, "RND, USR, VAR, NUMBER, LPAREN")
+  if tok.type == "RND" or tok.type == "USR":
+    function(tok)
   if tok.type == "LPAREN":
     tok = lexer.token()
     tok = expression(tok)
