@@ -171,39 +171,14 @@ def factor(tok):
     if tok.type != "RPAREN":
       tokerror(tok, "RPAREN")
 
-# def main():
-print("Program Start.")
-
 # now, open a program and parse it
-the_source_code1 = open("printsonly.tb", "r") #file 1
-# the_source_code2 = open("hexdump.tb", "r") #file 2
-# the_source_code3 = open("random.tb", "r") #file 3
-# the_source_code4 = open("ifsonly.tb", "r")
-
-print("Reading printsonly file...")
-lexer.input(the_source_code1.read())
+thesourcecode = open("random.tb", "r")
+#lexer.input("A=3\nB=4\nPRINT A+B")
+lexer.input(thesourcecode.read())
 statements = []
 program(lexer.token())
-print("Printsonly file read!")
 
-# print("Reading hexdump file...")
-# lexer.input(the_source_code2.read())
-# program(lexer.token())
-# print("Hexdump file read!")
-
-# print("Reading random file")
-# lexer.input(the_source_code3.read())
-# program(lexer.token())
-# print("Random file read")
-
-# print("Reading ifsonly file...")
-# lexer.input(the_source_code4.read())
-# program(lexer.token())
-# print("ifsonly file read!")
-
-print("Program End")
-
-  #TODO: the rest of the blank functions
-
-# if __name__ == "__main__":
-#   main()
+# by this point, statements should be fully populated
+for stmt in statements:
+  print(f"Executing {stmt} at line # {stmt._linenumber}")
+  stmt.execute()
